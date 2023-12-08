@@ -22,8 +22,8 @@ fun main() {
             val first = line.findAnyOf(matches)!!.second
             val last = line.findLastAnyOf(matches)!!.second
 
-            val firstDigit = if (first in digits.keys) digits[first] else first
-            val lastDigit = if (last in digits.keys) digits[last] else last
+            val firstDigit = digits[first] ?: first
+            val lastDigit = digits[last] ?: last
 
             "${firstDigit}${lastDigit}".toInt()
         }
