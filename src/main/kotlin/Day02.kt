@@ -10,6 +10,14 @@ data class Game(val id: Int, val rounds: List<Round>) {
                 rounds.maxOf { it.blue } <= blue
     }
 
+    fun getRequiredColorCounts(): Triple<Int, Int, Int> {
+        return Triple(
+            rounds.maxOf { it.red },
+            rounds.maxOf { it.green },
+            rounds.maxOf { it.blue }
+        )
+    }
+
     companion object {
         // Input example(s):
         // Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
@@ -68,11 +76,14 @@ private const val AVAILABLE_GREEN = 13
 private const val AVAILABLE_BLUE = 14
 
 fun main() {
-    val result = File("data/day02_input.txt")
+    val games = File("data/day02_input.txt")
         .readLines()
         .map { line ->
             Game.fromString(line)
-        }.filter { game ->
+        }
+
+    val part1 = games
+        .filter { game ->
             game.isPossible(
                 red = AVAILABLE_RED,
                 green = AVAILABLE_GREEN,
@@ -82,5 +93,11 @@ fun main() {
             it.id
         }
 
-    println(result)
+    val part2 = games.sumOf { game ->
+        val (red, green, blue) = game.getRequiredColorCounts()
+        red * green * blue
+    }
+
+    println(part1)
+    println(part2)
 }
