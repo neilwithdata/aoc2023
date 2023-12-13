@@ -18,8 +18,6 @@ class Grid(input: List<String>) {
 
     // returns true if any adjacent symbols to the number in the specified location
     private fun isPartNumber(row: Int, cols: IntRange): Boolean {
-        var isNearbySymbol = false
-
         // top left -> bottom right scan
         for (i in (row - 1)..(row + 1)) {
             for (j in (cols.first - 1)..(cols.last + 1)) {
@@ -35,8 +33,31 @@ class Grid(input: List<String>) {
         return false
     }
 
-    fun findPartNumbers(): List<Int> {
-        val partNumbers = mutableListOf<Int>()
+    fun findGearRatios(parts: List<Part> = findParts()): List<Int> {
+        val gearRatios = mutableListOf<Int>()
+
+        for (row in 0 until rows) {
+            for (col in 0 until cols) {
+                val c = data[row][col]
+
+                if (c == '*') {
+                    val adjacentParts = parts.filter { part ->
+                        (part.row in (row - 1)..(row + 1)) &&
+                                (part.cols intersect (col - 1)..(col + 1)).isNotEmpty()
+                    }
+
+                    if (adjacentParts.count() == 2) {
+                        gearRatios += adjacentParts[0].number * adjacentParts[1].number
+                    }
+                }
+            }
+        }
+
+        return gearRatios
+    }
+
+    fun findParts(): List<Part> {
+        val partNumbers = mutableListOf<Part>()
 
         var currNumber = ""
 
@@ -49,7 +70,11 @@ class Grid(input: List<String>) {
                 } else {
                     if (currNumber.isNotEmpty()) {
                         if (isPartNumber(row, (col - currNumber.length) until col)) {
-                            partNumbers += currNumber.toInt()
+                            partNumbers += Part(
+                                currNumber.toInt(),
+                                row,
+                                col - currNumber.length until col
+                            )
                         }
 
                         currNumber = ""
@@ -71,12 +96,23 @@ class Grid(input: List<String>) {
     }
 }
 
+data class Part(
+    val number: Int,
+    val row: Int,
+    val cols: IntRange
+)
+
+
 fun main() {
     val input = File("data/day03_input.txt")
         .readLines()
 
     val grid = Grid(input)
-    val result = grid.findPartNumbers().sum()
+    val parts = grid.findParts()
 
-    println(result)
+    val part1 = parts.sumOf { it.number }
+    val part2 = grid.findGearRatios(parts).sum()
+
+    println(part1)
+    println(part2)
 }
