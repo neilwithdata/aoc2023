@@ -5,21 +5,22 @@ data class Card(
     val winningNumbers: Set<Int>,
     val cardNumbers: Set<Int>
 ) {
+    val matchCount = (winningNumbers intersect cardNumbers).count()
+
+    var copies = 1
 
     fun calculateScore(): Int {
-        val count = (winningNumbers intersect cardNumbers).count()
-
-        if (count == 0)
+        if (matchCount == 0)
             return 0
 
-        return 2.0.pow((count - 1).toDouble()).toInt()
+        return 2.0.pow((matchCount - 1).toDouble()).toInt()
     }
 }
 
 fun main() {
-    val result = File("data/day04_input.txt")
+    val cards = File("data/day04_input.txt")
         .readLines()
-        .sumOf { line ->
+        .map { line ->
             val nums = line.substringAfter(':')
 
             val winning = nums.substringBefore('|')
@@ -34,9 +35,21 @@ fun main() {
                 .map { it.toInt() }
                 .toSet()
 
-            val card = Card(winning, cardNums)
-            card.calculateScore()
+            Card(winning, cardNums)
         }
 
-    println(result)
+    val part1 = cards.sumOf { it.calculateScore() }
+    println(part1)
+
+    for (i in cards.indices) {
+        val curr = cards[i]
+
+        cards.subList(i + 1, i + 1 + curr.matchCount)
+            .forEach { card ->
+                card.copies += curr.copies
+            }
+    }
+
+    val part2 = cards.sumOf { it.copies }
+    println(part2)
 }
