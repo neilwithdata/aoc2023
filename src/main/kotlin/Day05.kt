@@ -35,7 +35,13 @@ data class RangeMapping(
 fun main() {
     val scanner = Scanner(File("data/day05_input.txt"))
 
+    /* INPUT PARSING */
     val seeds = parseSeeds(scanner)
+    val seedRanges = buildList {
+        for (i in seeds.indices step 2) {
+            add(seeds[i] to seeds[i + 1])
+        }
+    }
 
     // Advance to category mappings
     scanner.nextLine()
@@ -45,19 +51,20 @@ fun main() {
         categories += parseCategoryMapping(scanner)
     }
 
+    /* CALCULATION */
     var lowestLocation = Long.MAX_VALUE
-    for (seed in seeds) {
-        // Step through each category mapping until we get to the end ('location')
-        var result = seed
-        for (category in categories) {
-            result = category.map(result)
-        }
+    for ((start, range) in seedRanges) {
+        for (seed in (start until start + range)) {
+            // Step through each category mapping until we get to the end 'location'
+            var result = seed
+            for (category in categories) {
+                result = category.map(result)
+            }
 
-        if (result < lowestLocation) {
-            lowestLocation = result
+            if (result < lowestLocation) {
+                lowestLocation = result
+            }
         }
-
-        println("Seed $seed corresponds to location $result")
     }
 
     println("Lowest location is $lowestLocation")
