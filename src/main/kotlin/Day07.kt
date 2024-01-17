@@ -1,13 +1,36 @@
 import Hand.Type.*
 import java.io.File
 
+private const val JOKER = 'J'
+
 data class Hand(
     val cards: String,
-    val bid: Int
+    val bid: Int,
+    val wildcardJoker: Boolean = false
 ) : Comparable<Hand> {
-    private val type = evaluateHand()
+    private val type = findStrongestHand(cards)
 
-    private fun evaluateHand(): Type {
+    private fun findStrongestHand(cards: String): Type {
+        if (wildcardJoker && cards.contains(JOKER)) {
+            // convert all the jokers to whatever is the most frequent card
+            // (this in turn produces the strongest hand)
+            val counts = cards
+                .groupingBy { it }.eachCount()
+                .toMutableMap()
+
+            counts.remove(JOKER)
+
+            val mostFrequent = counts.maxByOrNull { it.value }
+            val replacement = mostFrequent?.key ?: 'Q'
+
+            val updatedCards = cards.replace(JOKER, replacement)
+            return evaluateType(updatedCards)
+        } else {
+            return evaluateType(cards)
+        }
+    }
+
+    private fun evaluateType(cards: String): Type {
         val counts = cards.groupingBy { it }.eachCount()
 
         return when (counts.size) {
@@ -33,6 +56,11 @@ data class Hand(
                 val otherC = CardLabel.fromChar(other.cards[i])
 
                 if (c != otherC) {
+                    if (wildcardJoker) {
+                        if (c == CardLabel.J) return -1
+                        else if (otherC == CardLabel.J) return 1
+                    }
+
                     return c.ordinal - otherC.ordinal
                 }
             }
@@ -66,14 +94,21 @@ data class Hand(
 
 
 fun main() {
+    /* Part 1 */
     val hands = readInput()
-    val ranked = hands.sorted()
-
-    val result = ranked.withIndex().sumOf { (i, hand) ->
+    val part1Result = hands.sorted().withIndex().sumOf { (i, hand) ->
         (i + 1L) * hand.bid
     }
 
-    println(result)
+    println(part1Result)
+
+    /* Part 2 */
+    val part2Hands = hands.map { hand -> hand.copy(wildcardJoker = true) }
+    val part2Result = part2Hands.sorted().withIndex().sumOf { (i, hand) ->
+        (i + 1L) * hand.bid
+    }
+
+    println(part2Result)
 }
 
 fun readInput(): List<Hand> {
@@ -84,5 +119,3 @@ fun readInput(): List<Hand> {
             Hand(cards, bid.toInt())
         }
 }
-
-
